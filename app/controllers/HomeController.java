@@ -3,8 +3,10 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.ConnectionRequest;
 import models.Profile;
 import models.User;
+import play.data.DynamicForm;
 import play.data.FormFactory;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -50,6 +52,28 @@ public class HomeController extends Controller {
             connectionjson.put("lastName",connectedProfile.lastName);
             return connectionjson;
         }).collect(Collectors.toList())));
+        data.set("connectionRequestsReceived",objectMapper.valueToTree(
+               user.connectionRequestsReceived.stream()
+                .map(x-> {
+                    User requestor = User.find.byId(x.sender.id);
+                    Profile requestorprofile=Profile.find.byId(requestor.profile.id);
+                    ObjectNode requestorjson=objectMapper.createObjectNode();
+                    requestorjson.put("email",requestor.email);
+                    requestorjson.put("firstName",requestorprofile.firstName);
+                    requestorjson.put("lastName",requestorprofile.lastName);
+                    requestorjson.put("connectionRequestId",x.id);
+                    return requestorjson;
+                }).collect(Collectors.toList())));
+        return ok(data);
+    }
+    public Result updateProfile(Long userId){
+        DynamicForm form = formFactory.form().bindFromRequest();
+        User user = User.find.byId(userId);
+        Profile profile = Profile.find.byId(user.profile.id);
+        profile.company = form.get("company");
+        profile.firstName = form.get("firstName");
+        profile.lastName = form.get("lastName");
+        Profile.db().update(profile);
         return ok();
     }
 }
