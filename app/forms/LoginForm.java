@@ -1,6 +1,7 @@
 package forms;
 
 import models.User;
+import play.data.Form;
 import play.data.validation.Constraints;
 import play.data.validation.ValidationError;
 
@@ -17,9 +18,9 @@ public class LoginForm {
     public String password;
     public List<ValidationError> validate() {
         List<ValidationError> errors = new ArrayList<>();
-        User user = User.find.where().eq("email",email).findUnique();
+        User user = User.authentication(email,password);
         if(user == null) {
-            errors.add(new ValidationError("message","Email already exits"));
+            errors.add(new ValidationError("message","Email Invalid/Password"));
             errors.add(new ValidationError("error","true"));
         }
         return errors;
@@ -40,4 +41,5 @@ public class LoginForm {
     public void setEmail(String email) {
         this.email = email;
     }
+
 }
